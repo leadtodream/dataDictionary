@@ -1,7 +1,3 @@
-# dataDictionary
-PHP生成数据库数据字典（PHP generates a database data dictionary）
-使用说明：
-1.打开config.php，配置数据库连接参数即可。
 <?php
 //配置项
 return array(
@@ -24,5 +20,3 @@ return array(
     'charset' => 'utf8'
 );
 ?>
-2.运行项目：http://localhost//dataDictionary/index.php
-3.数据字典效果：
