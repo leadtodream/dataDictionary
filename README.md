@@ -10,7 +10,7 @@ PHP生成数据库数据字典（PHP generates a database data dictionary）
 - Sybase 
 - SQLite
 - MariaDB
-备注:需开启对应数据库的pdo扩展
+- 备注:需开启对应数据库的pdo扩展
 
 ## PHP环境需求
 - PHP >= 5.4
