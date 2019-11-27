@@ -5,12 +5,19 @@
 // | Author: @nsy 2019-11-25                                              |
 // +----------------------------------------------------------------------+
 header("Content-type:text/html;charset=utf-8;");
-require_once 'Medoo.php';
+require_once 'includes/Medoo.php';
 $config = require_once 'config.php';
+$db = $config['db'];
+$type = $config['type'];
+unset($config);
 //数据库名称,这里单独取出来以备下文使用
-$database_name = $config['database_name'];
+$database_name = $db['database_name'];
 //实例并初始化Medoo对象
-$database = new Medoo\Medoo($config);
+try{
+	$database = new Medoo\Medoo($db);
+}catch (Exception $e){
+	die($e->getMessage());
+}
 //列出数据库下，所有的表名
 $tables = $database->query(
 	"show tables"
@@ -20,26 +27,38 @@ if(!$tables){
 }
 
 $int_key = 0;
-$str_key = 'Tables_in_'.$database_name;
+//$str_key = 'Tables_in_'.$database_name;
 //存放结果集
 $result = array();
+$sql_txt = '';
 foreach($tables as $key => $items){
-	/*[Tables_in_cpj] => im_sns_base
-	[0] => im_sns_base*/
-	//取出数据表备注信息
-	$sql  = "SELECT TABLE_COMMENT,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE ";
-    $sql .= "table_name = '{$items[$int_key]}' AND table_schema = '{$database_name}'";
-	$table_content = $database->query($sql)->fetchAll();
-	//获取表字段信息
-	$sql = "SELECT * FROM  INFORMATION_SCHEMA.COLUMNS  WHERE  table_name = '{$items[$int_key]}' AND table_schema = '{$database_name}'";
-	$table_columns = $database->query($sql)->fetchAll();
-	//组装数据
-	$result[] =  array(
-		'table_content' => $table_content,
-		'table_columns' => $table_columns
-	);
+	if($type=='create'){
+		$create_sql = "show create table {$items[$int_key]}";
+		$ret = $database->query($create_sql)->fetchAll();
+		$sql_txt .= $ret[0][1]."\r\n\n";
+	}else{
+		/*[Tables_in_cpj] => im_sns_base
+		[0] => im_sns_base*/
+		//取出数据表备注信息
+		$sql  = "SELECT TABLE_COMMENT,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE ";
+		$sql .= "table_name = '{$items[$int_key]}' AND table_schema = '{$database_name}'";
+		$table_content = $database->query($sql)->fetchAll();
+		//获取表字段信息
+		$sql = "SELECT * FROM  INFORMATION_SCHEMA.COLUMNS  WHERE  table_name = '{$items[$int_key]}' AND table_schema = '{$database_name}'";
+		$table_columns = $database->query($sql)->fetchAll();
+		//组装数据
+		$result[] =  array(
+			'table_content' => $table_content,
+			'table_columns' => $table_columns
+		);
+	}
 }
-
+//txt下载
+if($type=='create'){
+	header("Content-type:application/txt");
+	header("Content-Disposition: attachment;filename={$database_name}数据字典.txt");
+	exit($sql_txt);
+}
 //表头
 $header = array(
 	"字段",	
